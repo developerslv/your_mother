@@ -1,0 +1,85 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "5rPfda8jFccr3A6heL+JAmi9K9g=",
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d",
+			"revisionTime": "2015-11-05T21:09:06Z"
+		},
+		{
+			"checksumSHA1": "40vJyUB4ezQSn/NSadsKEOrudMc=",
+			"path": "github.com/inconshreveable/mousetrap",
+			"revision": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75",
+			"revisionTime": "2014-10-17T20:07:13Z"
+		},
+		{
+			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
+			"path": "github.com/pmezard/go-difflib/difflib",
+			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
+			"revisionTime": "2016-01-10T10:55:54Z"
+		},
+		{
+			"checksumSHA1": "sB9JgRY0ch4NpG/oUOrR1fnpMqE=",
+			"path": "github.com/spf13/cobra",
+			"revision": "1238ba19d24b0b9ceee2094e1cb31947d45c3e86",
+			"revisionTime": "2016-06-07T12:43:46Z"
+		},
+		{
+			"checksumSHA1": "s0GYwa3YNJJXON/b+6ci2Sz9mEw=",
+			"path": "github.com/spf13/pflag",
+			"revision": "cb88ea77998c3f024757528e3305022ab50b43be",
+			"revisionTime": "2016-03-17T00:02:28Z"
+		},
+		{
+			"checksumSHA1": "K0crHygPTP42i1nLKWphSlvOQJw=",
+			"path": "github.com/stretchr/objx",
+			"revision": "1a9d0bb9f541897e62256577b352fdbc1fb4fd94",
+			"revisionTime": "2015-09-28T12:21:52Z"
+		},
+		{
+			"checksumSHA1": "/kKwYqD04AkkDZFQhGwklKw3RFA=",
+			"path": "github.com/stretchr/testify",
+			"revision": "8d64eb7173c7753d6419fd4a9caf057398611364",
+			"revisionTime": "2016-05-24T23:42:29Z"
+		},
+		{
+			"checksumSHA1": "Bn333k9lTndxU3D6n/G5c+GMcYY=",
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "8d64eb7173c7753d6419fd4a9caf057398611364",
+			"revisionTime": "2016-05-24T23:42:29Z"
+		},
+		{
+			"checksumSHA1": "fg3TzS9/QK3wZbzei3Z6O8XPLHg=",
+			"path": "github.com/stretchr/testify/http",
+			"revision": "8d64eb7173c7753d6419fd4a9caf057398611364",
+			"revisionTime": "2016-05-24T23:42:29Z"
+		},
+		{
+			"checksumSHA1": "pkygjJdYo4lYnh5HO2HYXZWcjXw=",
+			"path": "github.com/stretchr/testify/mock",
+			"revision": "8d64eb7173c7753d6419fd4a9caf057398611364",
+			"revisionTime": "2016-05-24T23:42:29Z"
+		},
+		{
+			"checksumSHA1": "9szJ/TIeyGN7M4k0l8AElkshkW4=",
+			"path": "github.com/thoj/go-ircevent",
+			"revision": "da78ed515c0f0833e7a92c7cc52898176198e2c1",
+			"revisionTime": "2016-02-06T20:33:04Z"
+		},
+		{
+			"checksumSHA1": "gQaOSgHVitMpmWimagRmxJZCoCg=",
+			"path": "github.com/zabawaba99/fireauth",
+			"revision": "9c20262c4e4e482b73c59ce4efd601ca15fd9645",
+			"revisionTime": "2016-03-05T03:09:49Z"
+		},
+		{
+			"checksumSHA1": "5PZIrw/7ThFUMVrELrRsFlpMw1E=",
+			"path": "github.com/zabawaba99/firego",
+			"revision": "8dec08658192ba0f3eb4e940e465b1ac56499010",
+			"revisionTime": "2016-04-19T22:07:38Z"
+		}
+	],
+	"rootPath": "github.com/dainis/your_mom_bot"
+}
