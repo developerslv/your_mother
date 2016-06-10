@@ -4,6 +4,7 @@ updatedeps:
 	go get -u github.com/kardianos/govendor
 	govendor fetch +vendor
 
+
 # test runs the unit tests and vets the code
 test:
 	go test -timeout=30s -parallel=4
@@ -43,8 +44,12 @@ updateproto:
 build:
 	go build -o bin/your_mom
 
+publish:
+	docker build -t dainis/your_mom_bot ./
+	docker push dainis/your_mom_bot
+
 run:
 	@$(MAKE) build
 	bin/your_mom -n "your_mom_bot_test" -c "#your_mom_test"
 
-.PHONY: updatedeps vet testrace test cover
+.PHONY: updatedeps vet testrace test cover run build publish

@@ -65,6 +65,18 @@ func (c *IRCClient) Start() error {
 		}
 	}()
 
+	stories, err := c.news.SubscribeToNew()
+
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		for story := range stories {
+			c.responder <- &ircResponse{channel: c.settings.Channel, message: "Trending @HN : " + story.String()}
+		}
+	}()
+
 	c.con.AddCallback("PRIVMSG", c.messageCallback)
 
 	c.con.Join(c.settings.Channel)
