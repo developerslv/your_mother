@@ -3,7 +3,6 @@ package main
 import (
 	"container/ring"
 	"github.com/zabawaba99/firego"
-	"log"
 	"strconv"
 	"sync"
 )
@@ -29,7 +28,7 @@ func NewHackersNews() *HackerNews {
 }
 
 func (h *HackerNews) GetTop(cnt int) ([]*HackerNewsStory, error) {
-	topStoriesFB := firego.New("https://hacker-news.firebaseio.com/v0/beststories", nil)
+	topStoriesFB := firego.New("https://hacker-news.firebaseio.com/v0/topstories", nil)
 
 	var v []uint64
 
@@ -101,7 +100,7 @@ func (h *HackerNews) SubscribeToNew() (chan *HackerNewsStory, error) {
 }
 
 func (h *HackerNews) subscribeLoop(newStories chan *HackerNewsStory) {
-	subscribeFB := firego.New("https://hacker-news.firebaseio.com/v0/beststories", nil)
+	subscribeFB := firego.New("https://hacker-news.firebaseio.com/v0/topstories", nil)
 	notifications := make(chan firego.Event)
 	subscribeFB.Watch(notifications)
 
@@ -110,9 +109,9 @@ func (h *HackerNews) subscribeLoop(newStories chan *HackerNewsStory) {
 			err, ok := notification.Data.(error)
 
 			if ok {
-				log.Printf("Failed to do watch an item : %s", err)
+				log.WithError(err).Error("Failed to do wath on an item because of error")
 			} else {
-				log.Printf("Failed to watch item with unknown error %v", notification.Data)
+				log.WithField("data", notification.Data).Error("Failed to watch item with unknown error")
 			}
 
 			h.subscribeLoop(newStories)
@@ -121,32 +120,32 @@ func (h *HackerNews) subscribeLoop(newStories chan *HackerNewsStory) {
 
 		ids, ok := notification.Data.([]interface{})
 		if !ok {
-			log.Printf("Failed to unparse received data %v", notification.Data)
+			log.WithField("data", notification.Data).Error("Failed to unparse received data")
 			continue
 		}
 
 		id, ok := ids[0].(float64)
 
 		if !ok {
-			log.Printf("Failed to unparse received id %v", ids[0])
+			log.WithField("id", ids[0]).Error("Failed to unparse received id")
 			continue
 		}
 
 		storyId := uint64(id)
 
 		if h.idWasSeen(storyId) {
-			log.Printf("%d was seen", storyId)
+			log.WithField("id", storyId).Debug("Got already seen story")
 			continue
 		}
 
-		log.Printf("%d already seen", storyId)
+		log.WithField("id", storyId).Debug("Story wasnt seen")
 		h.addAsSeen(storyId)
 
 		go func(id uint64) {
 			story, err := h.GetStory(id)
 
 			if err != nil {
-				log.Printf("Failed to fetch story because of error %s", err)
+				log.WithError(err).Error("Failed to fetch story because of error")
 				return
 			}
 

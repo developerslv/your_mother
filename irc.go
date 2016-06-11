@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/thoj/go-ircevent"
-	"log"
 	"strconv"
 	"strings"
 	"time"
