@@ -1,4 +1,4 @@
-package main
+package suppliers
 
 import (
 	"encoding/json"

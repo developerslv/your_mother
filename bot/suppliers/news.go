@@ -1,15 +1,20 @@
-package main
+package suppliers
 
 import (
 	"container/ring"
+	"errors"
+	log "github.com/Sirupsen/logrus"
 	"github.com/zabawaba99/firego"
 	"strconv"
 	"sync"
+	"time"
 )
 
 type HackerNews struct {
 	previousTop *ring.Ring
 	topLock     *sync.Mutex
+	sentId      uint64
+	lastTop     *HackerNewsStory
 }
 
 type HackerNewsStory struct {
@@ -17,6 +22,7 @@ type HackerNewsStory struct {
 	Title string `json:"title"`
 	Score int    `json:"score"`
 	Type  string `json:"type"`
+	Id    uint64 `json:"id"`
 }
 
 func (s *HackerNewsStory) String() string {
@@ -79,27 +85,50 @@ func (h *HackerNews) GetStories(ids []uint64) []*HackerNewsStory {
 }
 
 func (h *HackerNews) GetStory(id uint64) (*HackerNewsStory, error) {
-	storyFB := firego.New("https://hacker-news.firebaseio.com/v0/item/"+strconv.FormatUint(id, 10), nil)
+	for retryCount := 0; retryCount <= 3; retryCount += 1 {
+		storyFB := firego.New("https://hacker-news.firebaseio.com/v0/item/"+strconv.FormatUint(id, 10), nil)
 
-	var story HackerNewsStory
+		log.Debugf("Will fetch story %d", id)
 
-	if e := storyFB.Value(&story); e != nil {
-		return nil, e
+		var story HackerNewsStory
+		if e := storyFB.Value(&story); e != nil {
+			return nil, e
+		}
+
+		if story.Id == id {
+			return &story, nil
+		}
+
+		log.WithFields(log.Fields{
+			"requestedId": id,
+			"obtainedId":  story.Id,
+		}).Debugf("Failed to obtain requested story")
+
+		time.Sleep(time.Second * 10) //there is delay until story appears in item feed
 	}
 
-	return &story, nil
+	return nil, errors.New("Failed to obtain story that matches requested id")
 }
 
-func (h *HackerNews) SubscribeToNew() (chan *HackerNewsStory, error) {
+//Ugly, but works, as right now there isn't a stream down which to send
+//new stories it requires sending qurying rpc server for new stories
+func (h *HackerNews) GetLastTop() *HackerNewsStory {
+	h.topLock.Lock()
+	defer h.topLock.Unlock()
 
-	newStories := make(chan *HackerNewsStory)
+	if h.lastTop == nil || h.sentId == h.lastTop.Id {
+		return nil
+	}
 
-	go h.subscribeLoop(newStories)
-
-	return newStories, nil
+	h.sentId = h.lastTop.Id
+	return h.lastTop
 }
 
-func (h *HackerNews) subscribeLoop(newStories chan *HackerNewsStory) {
+func (h *HackerNews) BackgroundNewLoop() {
+	go h.doNewLoop()
+}
+
+func (h *HackerNews) doNewLoop() {
 	subscribeFB := firego.New("https://hacker-news.firebaseio.com/v0/topstories", nil)
 	notifications := make(chan firego.Event)
 	subscribeFB.Watch(notifications)
@@ -114,7 +143,7 @@ func (h *HackerNews) subscribeLoop(newStories chan *HackerNewsStory) {
 				log.WithField("data", notification.Data).Error("Failed to watch item with unknown error")
 			}
 
-			h.subscribeLoop(newStories)
+			go h.doNewLoop()
 			return
 		}
 
@@ -149,9 +178,15 @@ func (h *HackerNews) subscribeLoop(newStories chan *HackerNewsStory) {
 				return
 			}
 
-			newStories <- story
+			h.setStory(story)
 		}(storyId)
 	}
+}
+
+func (h *HackerNews) setStory(story *HackerNewsStory) {
+	h.topLock.Lock()
+	defer h.topLock.Unlock()
+	h.lastTop = story
 }
 
 func (h *HackerNews) idWasSeen(id uint64) bool {

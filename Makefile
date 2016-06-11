@@ -1,4 +1,5 @@
 VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf -rangeloops -shift -structtags -unsafeptr
+GIT_HASH=$(shell git rev-parse HEAD)
 
 updatedeps:
 	go get -u github.com/kardianos/govendor
@@ -42,14 +43,20 @@ updateproto:
 	protoc -I=protobuf --go_out=protobuf protobuf/googleplay.proto
 
 build:
-	go build -o bin/your_mom
+	go build -ldflags "-X github.com/dainis/your_mother/bot.GitHash=$(GIT_HASH)" -o bin/your_mom
 
 publish:
-	docker build -t dainis/your_mom_bot ./
-	docker push dainis/your_mom_bot
+	@${MAKE} build
+	docker build -t dainis/your_mother_base -f dockerfiles/base ./
+	docker build -t dainis/your_mother_rpc -f dockerfiles/rpc ./
+	docker build -t dainis/your_mother_irc -f dockerfiles/irc ./
+	docker push dainis/your_mother_rpc
+	docker push dainis/your_mother_irc
 
-run:
-	@$(MAKE) build
-	bin/your_mom -n "your_mom_bot_test" -c "#your_mom_test"
+run_rpc:
+	go run main.go rpc -v
+
+run_irc:
+	go run main.go irc -v --nick="your_mom_test" --channel="#your_mom_test"
 
 .PHONY: updatedeps vet testrace test cover run build publish

@@ -93,12 +93,6 @@
 			"revisionTime": "2016-02-06T20:33:04Z"
 		},
 		{
-			"checksumSHA1": "j7X/qWeuR0yMbeExra430PCK5m4=",
-			"path": "github.com/x-cray/logrus-prefixed-formatter",
-			"revision": "19bfe61502ba35a3235b4970c10b9366a0aa9b61",
-			"revisionTime": "2015-10-27T00:30:02Z"
-		},
-		{
 			"checksumSHA1": "gQaOSgHVitMpmWimagRmxJZCoCg=",
 			"path": "github.com/zabawaba99/fireauth",
 			"revision": "9c20262c4e4e482b73c59ce4efd601ca15fd9645",

@@ -1,0 +1,3 @@
+FROM dainis/your_mother_base
+
+CMD ["/your_mom", "irc", "-v", "--rpc_network=unix", "--rpc_address=/socket/your_mom.sock"]
