@@ -1,5 +1,6 @@
 VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf -rangeloops -shift -structtags -unsafeptr
 GIT_HASH=$(shell git rev-parse HEAD)
+GIT_REPO=$(shell git config --get remote.origin.url)
 
 updatedeps:
 	go get -u github.com/kardianos/govendor
@@ -43,7 +44,7 @@ updateproto:
 	protoc -I=protobuf --go_out=protobuf protobuf/googleplay.proto
 
 build:
-	go build -ldflags "-X github.com/dainis/your_mother/bot.GitHash=$(GIT_HASH)" -o bin/your_mom
+	go build -ldflags "-X github.com/dainis/your_mother/bot.GitHash=$(GIT_HASH)" -ldflags "-X github.com/dainis/your_mother/bot.GitRepo=$(GIT_REPO)" -o bin/your_mom
 
 publish:
 	@${MAKE} build

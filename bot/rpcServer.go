@@ -116,5 +116,9 @@ func (srv *BotRPCServer) Execute(e RPCCommand, resp *CommandResponse) error {
 		resp.AppendLine("Git hash : " + GitHash)
 	}
 
+	if msg == "!repo" {
+		resp.AppendLine("Repo : " + GitRepo)
+	}
+
 	return nil
 }

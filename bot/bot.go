@@ -1,3 +1,6 @@
 package bot
 
-var GitHash string
+var (
+	GitHash string
+	GitRepo string
+)
