@@ -92,51 +92,67 @@ func (h *HackerNews) GetStory(id uint64) (*HackerNewsStory, error) {
 }
 
 func (h *HackerNews) SubscribeToNew() (chan *HackerNewsStory, error) {
+
+	newStories := make(chan *HackerNewsStory)
+
+	go h.subscribeLoop(newStories)
+
+	return newStories, nil
+}
+
+func (h *HackerNews) subscribeLoop(newStories chan *HackerNewsStory) {
 	subscribeFB := firego.New("https://hacker-news.firebaseio.com/v0/beststories", nil)
 	notifications := make(chan firego.Event)
 	subscribeFB.Watch(notifications)
 
-	newStories := make(chan *HackerNewsStory)
+	for notification := range notifications {
+		if notification.Type == firego.EventTypeError {
+			err, ok := notification.Data.(error)
 
-	go func() {
-		for notification := range notifications {
-			ids, ok := notification.Data.([]interface{})
-			if !ok {
-				log.Printf("Failed to unparse received data %v", notification.Data)
-				continue
+			if ok {
+				log.Printf("Failed to do watch an item : %s", err)
+			} else {
+				log.Printf("Failed to watch item with unknown error %v", notification.Data)
 			}
 
-			id, ok := ids[0].(float64)
-
-			if !ok {
-				log.Printf("Failed to unparse received id %v", ids[0])
-				continue
-			}
-
-			storyId := uint64(id)
-
-			if h.idWasSeen(storyId) {
-				log.Printf("%d was seen", storyId)
-				continue
-			}
-
-			log.Printf("%d already seen", storyId)
-			h.addAsSeen(storyId)
-
-			go func(id uint64) {
-				story, err := h.GetStory(id)
-
-				if err != nil {
-					log.Printf("Failed to fetch story because of error %s", err)
-					return
-				}
-
-				newStories <- story
-			}(storyId)
+			h.subscribeLoop(newStories)
+			return
 		}
-	}()
 
-	return newStories, nil
+		ids, ok := notification.Data.([]interface{})
+		if !ok {
+			log.Printf("Failed to unparse received data %v", notification.Data)
+			continue
+		}
+
+		id, ok := ids[0].(float64)
+
+		if !ok {
+			log.Printf("Failed to unparse received id %v", ids[0])
+			continue
+		}
+
+		storyId := uint64(id)
+
+		if h.idWasSeen(storyId) {
+			log.Printf("%d was seen", storyId)
+			continue
+		}
+
+		log.Printf("%d already seen", storyId)
+		h.addAsSeen(storyId)
+
+		go func(id uint64) {
+			story, err := h.GetStory(id)
+
+			if err != nil {
+				log.Printf("Failed to fetch story because of error %s", err)
+				return
+			}
+
+			newStories <- story
+		}(storyId)
+	}
 }
 
 func (h *HackerNews) idWasSeen(id uint64) bool {
