@@ -38,3 +38,30 @@ func TestGetStories(t *testing.T) {
 		assert.NotNil(t, v)
 	}
 }
+
+func TestAddAsSeen(t *testing.T) {
+	h := NewHackersNews()
+
+	for i := 0; i < 60; i++ {
+		h.addAsSeen(uint64(i))
+	}
+
+	assert.Equal(t, 50, h.previousTop.Len())
+
+	assert.False(t, h.idWasSeen(1))
+	assert.True(t, h.idWasSeen(59))
+}
+
+func TestWasSeen(t *testing.T) {
+	h := NewHackersNews()
+	h.addAsSeen(1)
+	h.addAsSeen(2)
+	h.addAsSeen(3)
+	h.addAsSeen(4)
+
+	assert.True(t, h.idWasSeen(1))
+	assert.True(t, h.idWasSeen(2))
+	assert.True(t, h.idWasSeen(3))
+	assert.True(t, h.idWasSeen(4))
+	assert.False(t, h.idWasSeen(5))
+}

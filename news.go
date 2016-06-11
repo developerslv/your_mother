@@ -143,16 +143,17 @@ func (h *HackerNews) idWasSeen(id uint64) bool {
 	h.topLock.Lock()
 	defer h.topLock.Unlock()
 
-	exists := false
+	current := h.previousTop
 
-	h.previousTop.Do(func(v interface{}) {
-		idVal, ok := v.(uint64)
+	for good := true; good; good = current != h.previousTop {
+		idVal, ok := current.Value.(uint64)
 		if ok && id == idVal {
-			exists = true
+			return true
 		}
-	})
+		current = current.Next()
+	}
 
-	return exists
+	return false
 }
 
 func (h *HackerNews) addAsSeen(id uint64) {
