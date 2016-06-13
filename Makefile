@@ -9,7 +9,7 @@ updatedeps:
 
 # test runs the unit tests and vets the code
 test:
-	go test -timeout=30s -parallel=4
+	go test -timeout=30s -parallel=4 ./...
 	@$(MAKE) vet
 
 # testrace runs the race checker
