@@ -18,8 +18,16 @@ var rpcCmd = &cobra.Command{
 		news := suppliers.NewHackersNews()
 		news.BackgroundNewLoop()
 
-		rpcSrv := bot.NewRPCServer(suppliers.NewWeather(), news)
-		err := rpc.Register(rpcSrv)
+		logs, _ := cmd.Flags().GetString("irc_logs")
+
+		markov, err := suppliers.NewMarkov(logs)
+
+		if err != nil {
+			log.WithError(err).Fatal("Failed to init markov")
+		}
+
+		rpcSrv := bot.NewRPCServer(suppliers.NewWeather(), news, markov)
+		err = rpc.Register(rpcSrv)
 
 		if err != nil {
 			log.WithError(err).Panic("Failed to register rpc server")
@@ -51,4 +59,5 @@ var rpcCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(rpcCmd)
+	rpcCmd.Flags().StringP("irc_logs", "", "", "Irc logs path for markov")
 }

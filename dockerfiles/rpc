@@ -1,3 +1,5 @@
 FROM dainis/your_mother_base
 
-CMD ["/your_mom", "rpc", "-v", "--rpc_network=unix", "--rpc_address=/socket/your_mom.sock"]
+COPY irc_logs /irc_logs
+
+CMD ["/your_mom", "rpc", "-v", "--rpc_network=unix", "--rpc_address=/socket/your_mom.sock", "--irc_logs=/irc_logs"]

@@ -14,18 +14,26 @@ var ircCommands = [...]string{
 	"!help           - Help",
 	"!irc_version    - Display rpc git hash",
 	"!rpc_version    - Display irc git hash",
+	"!repo           - Display repo",
 }
 
 type BotRPCServer struct {
 	weather *suppliers.Weather
 	news    *suppliers.HackerNews
+	markov  *suppliers.Markov
 }
 
-func NewRPCServer(weather *suppliers.Weather, news *suppliers.HackerNews) *BotRPCServer {
-	return &BotRPCServer{weather: weather, news: news}
+func NewRPCServer(weather *suppliers.Weather, news *suppliers.HackerNews, markov *suppliers.Markov) *BotRPCServer {
+	return &BotRPCServer{weather: weather, news: news, markov: markov}
 }
 
 func (srv *BotRPCServer) Execute(e RPCCommand, resp *CommandResponse) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Errorf("Recovered from %v", r)
+		}
+	}()
+
 	msg := strings.TrimSpace(e.Message)
 	channel := e.Arguments[0]
 
@@ -118,6 +126,40 @@ func (srv *BotRPCServer) Execute(e RPCCommand, resp *CommandResponse) error {
 
 	if msg == "!repo" {
 		resp.AppendLine("Repo : " + GitRepo)
+	}
+
+	if strings.HasPrefix(msg, "!markov") {
+		usageString := "usage !markov <prefix length> <max words in generated resp> <input sentence>"
+		parts := strings.Fields(msg)
+
+		if len(parts) < 4 {
+			resp.AppendLine(usageString)
+			return nil
+		}
+
+		sentence := strings.Join(parts[3:], " ")
+
+		log.Debugf("Got markov request with prefix length %s, max words %s, sentence %s", parts[1], parts[2], sentence)
+
+		prefixLength, err := strconv.Atoi(parts[1])
+		if err != nil {
+			resp.AppendLine(usageString)
+			return nil
+		}
+
+		words, err := strconv.Atoi(parts[2])
+		if err != nil {
+			resp.AppendLine(usageString)
+			return nil
+		}
+
+		generated := srv.markov.Generate(sentence, prefixLength, words)
+
+		if len(generated) == 0 {
+			resp.AppendLine(":(")
+		} else {
+			resp.AppendLine(generated)
+		}
 	}
 
 	return nil

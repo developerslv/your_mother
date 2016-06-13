@@ -55,7 +55,7 @@ publish:
 	docker push dainis/your_mother_irc
 
 run_rpc:
-	go run main.go rpc -v
+	go run main.go rpc -v --irc_logs=irc_logs
 
 run_irc:
 	go run main.go irc -v --nick="your_mom_test" --channel="#your_mom_test"
