@@ -37,6 +37,15 @@ func (srv *BotRPCServer) Execute(e RPCCommand, resp *CommandResponse) error {
 	msg := strings.TrimSpace(e.Message)
 	channel := e.Arguments[0]
 
+	if len(msg) == 0 {
+		return nil
+	}
+
+	if msg[0] != '!' {
+		srv.markov.AppendWords(msg)
+		return nil
+	}
+
 	log.Debugf("Got request for %s", msg)
 
 	if channel[0] != '#' { //private message

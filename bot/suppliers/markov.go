@@ -23,15 +23,18 @@ func NewMarkov(folder string) (*Markov, error) {
 		return nil, err
 	}
 
-	words := splitInWords(lines)
-
-	m := &Markov{words: words}
+	m := &Markov{words: make([]string, 0, len(lines))}
+	m.splitInWords(lines)
 
 	return m, nil
 }
 
 func (m *Markov) AppendWords(sentence string) {
-	m.words = append(m.words, strings.FieldsFunc(sentence, fieldSplit)...)
+	for _, w := range strings.FieldsFunc(sentence, fieldSplit) {
+		if len(w) > 1 {
+			m.words = append(m.words, strings.ToLower(w))
+		}
+	}
 }
 
 func (m *Markov) Generate(sentence string, prefixLength int, length int) string {
@@ -83,7 +86,7 @@ func readText(folder string) ([]string, error) {
 	return lines, nil
 }
 
-func splitInWords(lines []string) []string {
+func (m *Markov) splitInWords(lines []string) {
 	tmpLines := make([]string, 0, len(lines))
 
 	for _, line := range lines {
@@ -118,15 +121,7 @@ func splitInWords(lines []string) []string {
 		}
 	}
 
-	var words []string
-
 	for _, line := range lines {
-		words = append(words, strings.FieldsFunc(line, fieldSplit)...)
+		m.AppendWords(line)
 	}
-
-	for i, word := range words {
-		words[i] = strings.ToLower(word)
-	}
-
-	return words
 }

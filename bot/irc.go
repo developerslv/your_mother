@@ -83,10 +83,6 @@ func (c *IRCClient) newTopLoop() {
 func (c *IRCClient) messageCallback(e *irc.Event) {
 	msg := strings.TrimSpace(e.Message())
 
-	if msg[0] != '!' {
-		return
-	}
-
 	if msg == "!irc_version" {
 		go func() {
 			c.responder <- &ircResponse{channel: e.Arguments[0], message: "Git hash " + GitHash}
