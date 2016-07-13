@@ -129,10 +129,15 @@ func (h *HackerNews) BackgroundNewLoop() {
 }
 
 func (h *HackerNews) doNewLoop() {
-	subscribeFB := firego.New("https://hacker-news.firebaseio.com/v0/topstories", nil)
-	notifications := make(chan firego.Event)
-	subscribeFB.Watch(notifications)
+	for {
+		subscribeFB := firego.New("https://hacker-news.firebaseio.com/v0/topstories", nil)
+		notifications := make(chan firego.Event)
+		subscribeFB.Watch(notifications)
+		h.readNewTopNews(notifications)
+	}
+}
 
+func (h *HackerNews) readNewTopNews(notifications chan firego.Event) {
 	for notification := range notifications {
 		if notification.Type == firego.EventTypeError {
 			err, ok := notification.Data.(error)
@@ -143,7 +148,6 @@ func (h *HackerNews) doNewLoop() {
 				log.WithField("data", notification.Data).Error("Failed to watch item with unknown error")
 			}
 
-			go h.doNewLoop()
 			return
 		}
 
