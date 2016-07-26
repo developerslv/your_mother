@@ -132,12 +132,20 @@ func (h *HackerNews) doNewLoop() {
 	for {
 		subscribeFB := firego.New("https://hacker-news.firebaseio.com/v0/topstories", nil)
 		notifications := make(chan firego.Event)
-		subscribeFB.Watch(notifications)
+
+		if err := subscribeFB.Watch(notifications); err != nil {
+			log.WithError(err).Error("Failed start watch firebase")
+			continue
+		}
+
 		h.readNewTopNews(notifications)
+		log.Debug("Failed and will retry")
 	}
 }
 
 func (h *HackerNews) readNewTopNews(notifications chan firego.Event) {
+	log.Debug("Will start watching top list")
+
 	for notification := range notifications {
 		if notification.Type == firego.EventTypeError {
 			err, ok := notification.Data.(error)
