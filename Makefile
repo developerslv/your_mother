@@ -39,15 +39,10 @@ vet:
 		echo "and fix them if necessary before submitting the code for reviewal."; \
 	fi
 
-updateproto:
-	wget https://raw.githubusercontent.com/dweinstein/google-play-proto/master/googleplay.proto -O protobuf/googleplay.proto
-	protoc -I=protobuf --go_out=protobuf protobuf/googleplay.proto
-
 build:
 	go build -ldflags "-X github.com/dainis/your_mother/bot.GitHash=$(GIT_HASH)" -ldflags "-X github.com/dainis/your_mother/bot.GitRepo=$(GIT_REPO)" -o bin/your_mom
 
-publish:
-	@${MAKE} build
+publish: build
 	docker build -t dainis/your_mother_base -f dockerfiles/base ./
 	docker build -t dainis/your_mother_rpc -f dockerfiles/rpc ./
 	docker build -t dainis/your_mother_irc -f dockerfiles/irc ./
