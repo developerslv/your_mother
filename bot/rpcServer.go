@@ -118,7 +118,7 @@ func (srv *BotRPCServer) Execute(e RPCCommand, resp *CommandResponse) error {
 	if msg == "!new_top" {
 		story := srv.news.GetLastTop()
 		if story != nil {
-			resp.AppendLine("Trending @ HN : " + story.String())
+			resp.AppendLine(story.String() + " - Trending @ HN")
 		}
 	}
 
