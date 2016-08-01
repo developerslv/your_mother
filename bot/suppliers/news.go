@@ -26,7 +26,7 @@ type HackerNewsStory struct {
 }
 
 func (s *HackerNewsStory) String() string {
-	return s.Title + " - " + s.URL + "(" + strconv.Itoa(s.Score) + ")"
+	return s.Title + " - " + s.URL + " (" + strconv.Itoa(s.Score) + ")"
 }
 
 func NewHackersNews() *HackerNews {
