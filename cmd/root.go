@@ -30,6 +30,7 @@ func init() {
 	RootCmd.PersistentFlags().BoolP("verbose", "v", false, "Verbose")
 	RootCmd.PersistentFlags().StringP("rpc_network", "", "tcp", "RPC network to use")
 	RootCmd.PersistentFlags().StringP("rpc_address", "", "0.0.0.0:8080", "RPC address")
+	RootCmd.PersistentFlags().StringP("sub_channel", "", "hn_top", "ably.io subscribe channel")
 }
 
 func initConfig() {
@@ -37,6 +38,7 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	}
 
+	viper.SetEnvPrefix("YOUR_MOTHER")
 	viper.SetConfigName(".your_mother") // name of config file (without extension)
 	viper.AddConfigPath("$HOME")        // adding home directory as first search path
 	viper.AutomaticEnv()                // read in environment variables that match

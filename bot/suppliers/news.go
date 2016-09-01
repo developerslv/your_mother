@@ -4,6 +4,7 @@ import (
 	"container/ring"
 	"errors"
 	log "github.com/Sirupsen/logrus"
+	"github.com/ably/ably-go/ably"
 	"github.com/zabawaba99/firego"
 	"strconv"
 	"sync"
@@ -13,8 +14,12 @@ import (
 type HackerNews struct {
 	previousTop *ring.Ring
 	topLock     *sync.Mutex
-	sentId      uint64
-	lastTop     *HackerNewsStory
+
+	sentId  uint64
+	lastTop *HackerNewsStory
+
+	publishKey     string
+	publishChannel string
 }
 
 type HackerNewsStory struct {
@@ -29,8 +34,14 @@ func (s *HackerNewsStory) String() string {
 	return s.Title + " - " + s.URL + " (" + strconv.Itoa(s.Score) + ")"
 }
 
-func NewHackersNews() *HackerNews {
-	return &HackerNews{topLock: &sync.Mutex{}, previousTop: ring.New(50)}
+func NewHackersNews(publishKey string, publishChannel string) *HackerNews {
+	return &HackerNews{
+		topLock:     &sync.Mutex{},
+		previousTop: ring.New(50),
+
+		publishKey:     publishKey,
+		publishChannel: publishChannel,
+	}
 }
 
 func (h *HackerNews) GetTop(cnt int) ([]*HackerNewsStory, error) {
@@ -129,6 +140,33 @@ func (h *HackerNews) BackgroundNewLoop() {
 }
 
 func (h *HackerNews) doNewLoop() {
+	storyChan := make(chan *HackerNewsStory)
+
+	go func() {
+
+		for {
+			client, err := ably.NewRealtimeClient(ably.NewClientOptions(h.publishKey))
+
+			if err != nil {
+				log.WithError(err).Error("Failed to create ably client")
+				continue
+			}
+
+			channel := client.Channels.Get(h.publishChannel)
+
+			for msg := range storyChan {
+
+				log.Debugf("Got message for publish %s", msg.String())
+				_, err := channel.Publish("hn_top", msg.String())
+
+				if err != nil {
+					log.WithError(err).Error("Failed to publish to channel %s", h.publishChannel)
+					continue
+				}
+			}
+		}
+	}()
+
 	for {
 		subscribeFB := firego.New("https://hacker-news.firebaseio.com/v0/topstories", nil)
 		notifications := make(chan firego.Event)
@@ -138,12 +176,12 @@ func (h *HackerNews) doNewLoop() {
 			continue
 		}
 
-		h.readNewTopNews(notifications)
+		h.readNewTopNews(notifications, storyChan)
 		log.Debug("Failed and will retry")
 	}
 }
 
-func (h *HackerNews) readNewTopNews(notifications chan firego.Event) {
+func (h *HackerNews) readNewTopNews(notifications chan firego.Event, storyChan chan *HackerNewsStory) {
 	log.Debug("Will start watching top list")
 
 	for notification := range notifications {
@@ -190,15 +228,16 @@ func (h *HackerNews) readNewTopNews(notifications chan firego.Event) {
 				return
 			}
 
-			h.setStory(story)
+			h.setStory(story, storyChan)
 		}(storyId)
 	}
 }
 
-func (h *HackerNews) setStory(story *HackerNewsStory) {
+func (h *HackerNews) setStory(story *HackerNewsStory, storyChan chan *HackerNewsStory) {
 	h.topLock.Lock()
 	defer h.topLock.Unlock()
 	h.lastTop = story
+	storyChan <- story
 }
 
 func (h *HackerNews) idWasSeen(id uint64) bool {

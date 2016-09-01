@@ -6,7 +6,7 @@ import (
 )
 
 func TestTop(t *testing.T) {
-	h := NewHackersNews()
+	h := NewHackersNews("something", "something")
 
 	s, e := h.GetTop(5)
 
@@ -15,7 +15,7 @@ func TestTop(t *testing.T) {
 }
 
 func TestGetStory(t *testing.T) {
-	h := NewHackersNews()
+	h := NewHackersNews("something", "something")
 
 	story, e := h.GetStory(11878149)
 
@@ -28,7 +28,7 @@ func TestGetStory(t *testing.T) {
 }
 
 func TestGetStories(t *testing.T) {
-	h := NewHackersNews()
+	h := NewHackersNews("something", "something")
 
 	s := h.GetStories([]uint64{11878149, 11862476, 11871587})
 
@@ -40,7 +40,7 @@ func TestGetStories(t *testing.T) {
 }
 
 func TestAddAsSeen(t *testing.T) {
-	h := NewHackersNews()
+	h := NewHackersNews("something", "something")
 
 	for i := 0; i < 60; i++ {
 		h.addAsSeen(uint64(i))
@@ -53,7 +53,7 @@ func TestAddAsSeen(t *testing.T) {
 }
 
 func TestWasSeen(t *testing.T) {
-	h := NewHackersNews()
+	h := NewHackersNews("something", "something")
 	h.addAsSeen(1)
 	h.addAsSeen(2)
 	h.addAsSeen(3)

@@ -5,6 +5,7 @@ import (
 	"github.com/dainis/your_mother/bot"
 	"github.com/dainis/your_mother/bot/suppliers"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"net"
 	"net/http"
 	"net/rpc"
@@ -15,7 +16,11 @@ var rpcCmd = &cobra.Command{
 	Use:   "rpc",
 	Short: "Your mother is a RPC",
 	Run: func(cmd *cobra.Command, args []string) {
-		news := suppliers.NewHackersNews()
+		pubKey := viper.GetString("pub_key")
+		pubChannel, _ := cmd.Flags().GetString("sub_channel")
+
+		news := suppliers.NewHackersNews(pubKey, pubChannel)
+
 		news.BackgroundNewLoop()
 
 		logs, _ := cmd.Flags().GetString("irc_logs")
@@ -60,4 +65,7 @@ var rpcCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(rpcCmd)
 	rpcCmd.Flags().StringP("irc_logs", "", "", "Irc logs path for markov")
+	rpcCmd.Flags().StringP("pub_key", "", "", "ably.io api key for publishing")
+
+	viper.BindPFlag("pub_key", rpcCmd.Flags().Lookup("pub_key"))
 }

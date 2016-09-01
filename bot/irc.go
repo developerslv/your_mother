@@ -2,6 +2,8 @@ package bot
 
 import (
 	log "github.com/Sirupsen/logrus"
+	"github.com/ably/ably-go/ably"
+	"github.com/ably/ably-go/ably/proto"
 	"github.com/thoj/go-ircevent"
 	"net/rpc"
 	"strings"
@@ -9,19 +11,26 @@ import (
 )
 
 type IRCSettings struct {
-	Nick       string
-	User       string
-	Server     string
-	Channel    string
-	Debug      bool
+	Nick    string
+	User    string
+	Server  string
+	Channel string
+	Debug   bool
+
 	RPCNetwork string
 	RPCAddress string
+
+	SubscriberKey     string
+	SubscriberChannel string
 }
 
 type IRCClient struct {
 	con       *irc.Connection
 	settings  *IRCSettings
 	responder chan *ircResponse
+
+	subChannelName string
+	subClientKey   string
 }
 
 type ircResponse struct {
@@ -35,6 +44,9 @@ func NewIRCClient(settings *IRCSettings) *IRCClient {
 	client.settings = settings
 	client.responder = make(chan *ircResponse)
 	client.con.Debug = settings.Debug
+
+	client.subClientKey = settings.SubscriberKey
+	client.subChannelName = settings.SubscriberChannel
 
 	return client
 }
@@ -62,21 +74,39 @@ func (c *IRCClient) Start() error {
 
 	c.con.Join(c.settings.Channel)
 
-	go c.newTopLoop()
+	go c.newSubLoop()
 
 	c.con.Loop()
 
 	return nil
 }
 
-func (c *IRCClient) newTopLoop() {
+func (c *IRCClient) newSubLoop() {
 	for {
-		c.makeRequest(&RPCCommand{
-			Message:   "!new_top",
-			Arguments: []string{c.settings.Channel},
-			Nick:      c.settings.Nick,
-		})
-		time.Sleep(time.Minute * 5)
+		client, err := ably.NewRealtimeClient(ably.NewClientOptions(c.settings.SubscriberKey))
+
+		if err != nil {
+			log.WithError(err).Error("Failed to create ably client")
+		}
+
+		log.Debug("Entering subscriber loop")
+
+		channel := client.Channels.Get(c.subChannelName)
+
+		sub, err := channel.Subscribe()
+
+		if err != nil {
+			log.WithError(err).Error("Failed to subscribe to %s", c.subChannelName)
+			continue
+		}
+
+		for msg := range sub.MessageChannel() {
+			log.Debugf("Got message %s", msg.Data)
+
+			go func(msg *proto.Message) {
+				c.responder <- &ircResponse{channel: c.settings.Channel, message: msg.Data}
+			}(msg)
+		}
 	}
 }
 
